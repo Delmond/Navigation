@@ -1,0 +1,12 @@
+global_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+  update_frequency: 1.0
+  publish_frequency: 1.0 #0
+  static_map: true
+  width: 50 #3.4
+  height: 50 #3.4
+  origin_x: -25 #-1.20 is the actual position; -0.95 is the old one, for the frond wheel at the marker
+  origin_y: -25 #-1.91
+  resolution: 0.1
+  transform_tolerance: 1.0

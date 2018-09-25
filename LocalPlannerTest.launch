@@ -1,0 +1,64 @@
+<launch>
+<param name="/use_sim_time" value="true"/>
+	<!--Simulator -->
+	<!-- <node pkg="stage_ros" type="stageros" name="stage" args="/home/delmond/Documents/ROS/stage_worlds/pioneer.world">
+	</node> -->
+	<node pkg="stage_ros" type="stageros" name="stage" args="/home/delmond/Documents/ROS/stage_worlds/pioneer_complex.world">
+	</node>
+
+	<!-- Controller -->
+	<node pkg="rqt_gui" type="rqt_gui" name="rqt_gui">
+	</node>
+	<!-- Visualizer -->
+	<node pkg="rviz" type="rviz" name="rviz">
+	</node>
+
+	<!-- Navigation Stack -->
+
+	<!-- SLAM -->
+	<!-- <node pkg="gmapping" type="slam_gmapping"
+		respawn="false" name="slam_gmapping" output="screen">
+		<remap from="scan" to="/base_scan" />
+		<param name="map_update_interval" value="12.0"/>
+		<param name="maxUrange" value="6.0"/>
+		<param name="iterations" value="5"/>
+		<param name="linearUpdate" value="0.25"/>
+		<param name="angularUpdate" value="0.262"/>
+		<param name="temporalUpdate" value="-1.0" />
+		<param name="particles" value="300"/>
+		<param name="xmin" value="-50.0"/>
+		<param name="ymin" value="-50.0"/>
+		<param name="xmax" value="50.0"/>
+		<param name="ymax" value="50.0"/>
+		<param name="base_frame" value="base_link"/>
+		<param name="minimumScore" value="200.0"/>
+		<param name="srr" value="0.01"/>
+		<param name="str" value="0.01"/>
+		<param name="srt" value="0.02"/>
+		<param name="stt" value="0.02"/>
+		<param name="transform_publish_period" value="0.1" />
+	</node> -->
+	<node pkg="map_server" type="map_server" name="map_server" args="/home/delmond/discovered2.yaml">
+	</node>
+	<node pkg="amcl" type="amcl" name="amcl" >
+		<remap from="scan" to="/base_scan" />
+	</node>
+	<!-- Global and Local path planner -->
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/costmap_common_params.yaml"
+			command="load" ns="global_costmap" />
+		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/costmap_common_params.yaml"
+			command="load" ns="local_costmap" />
+		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/local_costmap_params.yaml"
+			command="load" />
+		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/global_costmap_params.yaml"
+			command="load" />
+		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/local_planner_params.yaml"
+			command="load" />
+		<param name="base_global_planner" type="string" value="navfn/NavfnROS" />
+		<param name="base_local_planner" value="pathplanner/DynamicWindow" />
+		<param name="controller_frequency" type="double" value="6.0" />
+	</node>
+
+
+</launch>

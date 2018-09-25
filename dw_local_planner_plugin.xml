@@ -1,0 +1,5 @@
+<library path="lib/libDW_local_planner">
+  <class name="pathplanner/DynamicWindow" type="DynamicWindow" base_class_type="nav_core::BaseLocalPlanner">
+    <description>Dynamic window path planer written by Muhamed Delalic for ROS.</description>
+  </class>
+</library>

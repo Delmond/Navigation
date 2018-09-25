@@ -1,0 +1,5 @@
+<library path="lib/libAstar_global_planner">
+  <class name="pathplanner/Astar" type="Astar" base_class_type="nav_core::BaseGlobalPlanner">
+    <description>Astar pathplaner written by Muhamed Delalic for ROS.</description>
+  </class>
+</library>
