@@ -22,7 +22,7 @@ You also have to have a Workspace set up, then you can simple clone this project
 Simply run catkin_make in your workspace. Then source the setup file in the /devel folder.
 
 ## Running
-You can run this project by typing --roslaunch pathplanner CustomCompletePlanner.launch
+You can run this project by typing -- roslaunch pathplanner CustomCompletePlanner.launch --
 
 Developed by Muhamed Delalić
 
