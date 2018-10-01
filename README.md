@@ -1,4 +1,4 @@
-# ROS navigation implementation using move_base package
+# ROS navigation stack using move_base package
 
 ## Global path planner
 The file **Astar_global_planner.cpp** contains the derived class **Astar** which implementents the base class **BaseGlobalPlanner**. 
