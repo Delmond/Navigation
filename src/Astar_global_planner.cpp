@@ -7,7 +7,6 @@
 #include <iostream>
 #include <chrono>
 
-
 #include <ros/ros.h>
 
 #include <actionlib/client/simple_action_client.h>
@@ -39,6 +38,10 @@
 
 
 #include <pluginlib/class_list_macros.h>
+
+
+// Commend out if you dont want analytics logging
+#define ANALYTICS
 
 using namespace std;
 using namespace std::chrono;
@@ -84,12 +87,6 @@ class Astar: public nav_core::BaseGlobalPlanner{
       isInitilized = true;
       ROS_INFO("Astar global planner: Initialized successfully");
     }
-    // const int getXCord(int cell) const{
-    //   return cell/width;
-    // }
-    // const int getYCord(int cell) const{
-    //   return cell%width;
-    // }
     const bool isInfinity(float x){
       return fabs(infinity - x) < epsilon;
     }
@@ -98,21 +95,12 @@ class Astar: public nav_core::BaseGlobalPlanner{
         return false;
       return true;
     }
-    // const int getIndexFromCords(const int &x, const int &y) const {
-    //   float relativeX = (x - originX)/resolution;
-    //   float relativeY = (y - originY)/resolution;
-    //   return (relativeX*width)+relativeY;
-    // }
     const double getMoveCost(int firstIndex, int secondIndex) const{
       unsigned int tmp1, tmp2;
       costmap->indexToCells(firstIndex, tmp1, tmp2);
       int firstXCord = tmp1,firstYCord = tmp2;
       costmap->indexToCells(secondIndex, tmp1, tmp2);
       int secondXCord = tmp1, secondYCord = tmp2;
-      // int firstXCord = getXCord(firstIndex);
-      // int firstYCord = getYCord(firstIndex);
-      // int secondXCord = getXCord(secondIndex);
-      // int secondYCord = getYCord(secondIndex);
 
       int difference = abs(firstXCord - secondXCord) + abs(firstYCord - secondYCord);
       // Error checking
@@ -120,7 +108,6 @@ class Astar: public nav_core::BaseGlobalPlanner{
         ROS_ERROR("Astar global planner: Error in getMoveCost - difference not valid");
         return 1.0;
       }
-
       if(difference == 1)
         return 1.0;
       else
@@ -145,11 +132,6 @@ class Astar: public nav_core::BaseGlobalPlanner{
     const double getHeuristic(int startCell, int goalCell) const{
       enum class Type { EUCLID, MANHATTAN };
       Type type = Type::EUCLID;
-
-      // int startX = getXCord(startCell);
-      // int startY = getYCord(startCell);
-      // int goalX = getXCord(goalCell);
-      // int goalY = getYCord(goalCell);
       unsigned int tmp1, tmp2;
       costmap->indexToCells(startCell, tmp1, tmp2);
       int startX = tmp1, startY = tmp2;
@@ -195,22 +177,22 @@ class Astar: public nav_core::BaseGlobalPlanner{
       // A* implementation
       vector<float> gCosts(mapSize, infinity);
       vector<int> cameFrom(mapSize, -1);
+      // Acts as a priority queue
       multiset<Node> priority_costs;
       unsigned int tmp1, tmp2;
       costmap->worldToMap(startX, startY, tmp1, tmp2);
       int startIndex = costmap->getIndex(tmp1, tmp2);
       costmap->worldToMap(goalX, goalY, tmp1, tmp2);
       int goalIndex = costmap->getIndex(tmp1, tmp2);
-      //int startIndex =  getIndexFromCords(startX, startY);
-      //int goalIndex = getIndexFromCords(goalX, goalY);
       gCosts[startIndex] = 0;
+      #ifdef ANALYTICS
       //** ANALYTICS **//
       int numberOfCellsVisited = 0;
       double pathLength = 0.0;
       int numberOfCellsInPath = 0;
       high_resolution_clock::time_point t1 = high_resolution_clock::now();
       //** END ANALYTICS **//
-
+      #endif // ANALYTICS
       Node currentNode;
       currentNode.index = startIndex;
       currentNode.cost = gCosts[startIndex] + 0;
@@ -225,13 +207,15 @@ class Astar: public nav_core::BaseGlobalPlanner{
 
         for(int i = 0; i < neighborIndexes.size(); i++){
           //cout << "neighborIndexes[i]: " << neighborIndexes[i] << endl;
+          #ifdef ANALYTICS
           numberOfCellsVisited++;
+          #endif // ANALYTICS
           if(cameFrom[neighborIndexes[i]] == -1){
             gCosts[neighborIndexes[i]] = gCosts[currentNode.index]
                   + getMoveCost(currentNode.index, neighborIndexes[i]);
             Node nextNode;
             nextNode.index = neighborIndexes[i];
-            nextNode.cost = gCosts[neighborIndexes[i]] ;// + getHeuristic(neighborIndexes[i], goalIndex);
+            nextNode.cost = gCosts[neighborIndexes[i]] + getHeuristic(neighborIndexes[i], goalIndex);
             cameFrom[neighborIndexes[i]] = currentNode.index;
             priority_costs.insert(nextNode);
           }
@@ -241,38 +225,28 @@ class Astar: public nav_core::BaseGlobalPlanner{
         cout << "Goal not reachable, failed making a global path." << endl;
         return false;
       }
+      #ifdef ANALYTICS
       //** ANALYTICS **//
       high_resolution_clock::time_point t2 = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>( t2 - t1 ).count();
       //** END ANALYTICS **//
-
+      #endif // ANALYTICS
 
       if(startIndex == goalIndex)
         return false;
       //Finding the best path
       vector<int> bestPath;
       currentNode.index = goalIndex;
-      // currentNode.cost = gCosts[goalIndex];
-      // cout << "Value of cameFrom for goalIndex: " << goalIndex << "is: " << cameFrom[goalIndex] <<" with gCost" << gCosts[goalIndex] << endl;
       while(currentNode.index != startIndex){
-       // vector<int> neighborIndexes = getNeighborIndexes(currentNode.index);
-       // vector<float> neighborCosts;
-       //  for(int i = 0; i < neighborIndexes.size(); i++){
-       //    neighborCosts.push_back(gCosts[neighborIndexes[i]]);// + getHeuristic(neighborIndexes[i], goalIndex));
-       //  }
-       //  int minElementIndex = distance(neighborCosts.begin(), min_element(neighborCosts.begin(), neighborCosts.end()));
-       //
-       //  bestPath.push_back(neighborIndexes[minElementIndex]);
-       //  currentNode.index = neighborIndexes[minElementIndex];
-          bestPath.push_back(cameFrom[currentNode.index]);
+         bestPath.push_back(cameFrom[currentNode.index]);
           currentNode.index = cameFrom[currentNode.index];
-          // cout << currentNode.index << endl;
       }
       reverse(bestPath.begin(), bestPath.end());
+      #ifdef ANALYTICS
       //** ANALYTICS **//
       numberOfCellsInPath = bestPath.size();
       //** END ANALYTICS **//
-
+      #endif // ANALYTICS
 
       ros::Time plan_time = ros::Time::now();
       for(int i = 0; i < bestPath.size(); i++){
@@ -280,11 +254,6 @@ class Astar: public nav_core::BaseGlobalPlanner{
         costmap->indexToCells(bestPath[i], tmp1, tmp2);
         double x, y;
         costmap->mapToWorld(tmp1,tmp2, x, y);
-        //float x = getXCord(bestPath[i]) * resolution;
-        //float y = getYCord(bestPath[i]) * resolution;
-
-        // x = x + originX;
-        // y = y + originY;
 
         geometry_msgs::PoseStamped pose;
         pose.header.stamp = plan_time;
@@ -297,7 +266,7 @@ class Astar: public nav_core::BaseGlobalPlanner{
         pose.pose.orientation.y = 0.0;
         pose.pose.orientation.z = 0.0;
         pose.pose.orientation.w = 1.0;
-
+        #ifdef ANALYTICS
         //** ANALYTICS **//
           if(i != 0){
             double dx = (plan[i - 1].pose.position.x - x);
@@ -306,9 +275,10 @@ class Astar: public nav_core::BaseGlobalPlanner{
             pathLength += segmentLength;
           }
           //** END ANALYTICS **//
-
+        #endif // ANALYTICS
         plan.push_back(pose);
       }
+      #ifdef ANALYTICS
       //** ANALYTICS **//
       cout << "ANALYTICS: " << endl;
       cout << "Time elapsed: " << duration << " microseconds" << endl;
@@ -317,6 +287,7 @@ class Astar: public nav_core::BaseGlobalPlanner{
       cout << "Number of cells in path: " << numberOfCellsInPath << endl;
       cout << "END ANALYTICS: " << endl;
       //** END ANALYTICS **//
+      #endif // ANALYTICS
       publishGUIPath(plan);
       return true;
     }
@@ -334,7 +305,7 @@ class Astar: public nav_core::BaseGlobalPlanner{
       guiPathPub.publish(gui_path);
     }
 };
-
+// Required for multiset sorting
 bool operator <(const Node& x, const Node& y) {
   return x.cost < y.cost;
 }
