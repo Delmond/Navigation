@@ -24,6 +24,8 @@ Simply run catkin_make in your workspace. Then source the setup file in the /dev
 ## Running
 You can run this project by typing ` roslaunch pathplanner CustomCompletePlanner.launch `
 
+## About
 Developed by Muhamed Delalić
 
+## License
 This project is licensed under the terms of the MIT license.
