@@ -165,8 +165,8 @@ class Astar: public nav_core::BaseGlobalPlanner{
     }
 
     bool makePlan(const geometry_msgs::PoseStamped& start,
-  		const geometry_msgs::PoseStamped& goal,
-  		std::vector<geometry_msgs::PoseStamped>& plan)
+    		const geometry_msgs::PoseStamped& goal,
+    		std::vector<geometry_msgs::PoseStamped>& plan)
     {
       if(isInitilized == false){
         ROS_ERROR("Astart global planner: Initilize must be called first");

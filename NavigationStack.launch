@@ -2,7 +2,7 @@
 	<master auto="start"/>
 	<param name="/use_sim_time" value="true"/>
 	<!--Simulator -->
-	<node pkg="stage_ros" type="stageros" name="stage" args="/home/delmond/Documents/ROS/stage_worlds/pioneer_complex.world">
+	<node pkg="stage_ros" type="stageros" name="stage" args="/home/delmond/Documents/ROS/stage_worlds/pioneer.world">
 		<param name="base_watchdog_timeout" value="0.2"/>
 	</node>
 
@@ -19,9 +19,9 @@
 	<node pkg="gmapping" type="slam_gmapping"
 		respawn="false" name="slam_gmapping" output="screen">
 		<remap from="scan" to="/base_scan" />
-		<param name="map_update_interval" value="2.0"/>
+		<param name="map_update_interval" value="5.0"/>
 		<param name="maxUrange" value="6.0"/>
-		<param name="iterations" value="5"/>
+		<param name="iterations" value="1"/>
 		<param name="linearUpdate" value="0.1"/>
 		<param name="angularUpdate" value="0.1"/>
 		<param name="temporalUpdate" value="-1.0" />
@@ -32,10 +32,10 @@
 		<param name="ymax" value="50.0"/>
 		<param name="base_frame" value="base_link"/>
 		<param name="minimumScore" value="200.0"/>
-		<param name="srr" value="0.01"/>
-		<param name="str" value="0.01"/>
-		<param name="srt" value="0.02"/>
-		<param name="stt" value="0.02"/>
+		<param name="srr" value="0.03"/>
+		<param name="str" value="0.03"/>
+		<param name="srt" value="0.00"/>
+		<param name="stt" value="0.05"/>
 		<param name="transform_publish_period" value="0.1"/>
 	</node>
 
@@ -52,7 +52,7 @@
 		<rosparam file="/home/delmond/Documents/ROS/Workspace/src/pathplanner/src/local_planner_params.yaml"
 			command="load" />
 		<param name="base_global_planner" type="string" value="navfn/NavfnROS" />
-		<param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+		<param name="base_local_planner" value="pathplanner/DynamicWindow" />
 		<param name="controller_frequency" type="double" value="6.0" />
 	</node>
 

@@ -45,24 +45,24 @@
 
 // CONSTANTS
 const double PI                          = 3.141592653589793238463;
-const double MAX_LINEAR_VELOCITY         = 1.0;
+const double MAX_LINEAR_VELOCITY         = 0.2;
 const double MIN_LINEAR_VELOCITY         = 0.0;
 const double MAX_ANGULAR_VELOCITY        = PI*30.0/180.0;
 const double MIN_ANGULAR_VELOCITY        = -PI*30.0/180.0;
-const double MAX_LINEAR_ACCELERATION     = 2.0;
-const double MIN_LINEAR_ACCELERATION     = -2.0;
-const double MAX_ANGULAR_ACCELERATION    = PI*30.0/180.0;
-const double MIN_ANGULAR_ACCELERATION    = -PI*30.0/180.0;
+const double MAX_LINEAR_ACCELERATION     = 1.0;
+const double MIN_LINEAR_ACCELERATION     = -1.0;
+const double MAX_ANGULAR_ACCELERATION    = PI*40.0/180.0;
+const double MIN_ANGULAR_ACCELERATION    = -PI*40.0/180.0;
 const double DT                          = 0.5;
-const double ROBOT_RADIUS                = 0.05;
+const double ROBOT_RADIUS                = 0.7;
 // const double WEIGHT_HEADING = 0.05;
 // const double WEIGHT_CLEARANCE = 0.2;
 // const double WEIGHT_VELOCITY = 0.1;
-const double WEIGHT_HEADING = 0.2;
-const double WEIGHT_CLEARANCE = 6;
+const double WEIGHT_HEADING = 0.4;
+const double WEIGHT_CLEARANCE = 2.8;
 const double WEIGHT_VELOCITY = 0.2;
 const double EPSILON = std::numeric_limits<double>::epsilon();
-const int stepsAhead = 10;
+const int stepsAhead = 20;
 
 using namespace std;
 
@@ -84,6 +84,9 @@ class DynamicWindow: public nav_core::BaseLocalPlanner {
   ros::Publisher guiPathPub;
   ros::Publisher waypointPub;
   nav_msgs::Path gui_path;
+  ros::NodeHandle nh;
+  ros::NodeHandle oh;
+
   struct ScoringHelper{
     double clearance;
     double heading;
@@ -92,7 +95,7 @@ class DynamicWindow: public nav_core::BaseLocalPlanner {
     double score;
   };
 public:
-  DynamicWindow(): initialized(false) {}
+  DynamicWindow(): initialized(false), nh("~/DynamicWindow") {}
   double getClearnace(geometry_msgs::PoseStamped robotPose){
     double minDistance = 100000;
     // costmap->worldToMap(robotPose.pose.position.x, robotPose.pose.position.y, CordX, CordY);
@@ -116,12 +119,22 @@ public:
     }
     return minDistance;
   }
+  bool isImpactAroundLocation(int x, int y){
+    for(int i = -4; i <= 4; i++){
+      for(int j = -4; j <= 4; j++){
+        if(DynamicWindow::costmap->getCost(x + i, y + j) != 0){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   double getClearnaceAlternative(geometry_msgs::PoseStamped robotPose, double velocity, double rotationalVelocity){
     double minDistance = 100000;
     // costmap->worldToMap(robotPose.pose.position.x, robotPose.pose.position.y, CordX, CordY);
     double distanceToObstacle = 0.0;
     bool obstacleFound = false;
-    for(int i = 0; i < 20; i++){
+    for(int i = 0; i < 10; i++){
         geometry_msgs::PoseStamped newRobotPose = getNewRobotPose(robotPose, velocity, rotationalVelocity);
 
         double dx = newRobotPose.pose.position.x - robotPose.pose.position.x;
@@ -131,16 +144,16 @@ public:
         unsigned int tmp1, tmp2;
         costmap->worldToMap(newRobotPose.pose.position.x, newRobotPose.pose.position.y, tmp1, tmp2);
 
-        if(DynamicWindow::costmap->getCost(tmp1, tmp2) != 0){
+        if(isImpactAroundLocation(tmp1, tmp2)){
           obstacleFound = true;
           break;
         }
         robotPose = newRobotPose;
       }
       if(obstacleFound){
-        return (distanceToObstacle > 2.0)? 2.0 : distanceToObstacle;
+        return (distanceToObstacle > 4*ROBOT_RADIUS)? 4*ROBOT_RADIUS : distanceToObstacle;
       } else{
-        return 2.0;
+        return 4*ROBOT_RADIUS;
       }
   }
   double desiredVelocity(geometry_msgs::PoseStamped robotPose){
@@ -193,13 +206,11 @@ public:
     width = costmap->getSizeInCellsX();
     height = costmap->getSizeInCellsY();
     mapSize = width * height;
-    ROS_INFO("Width is: %d, Height is: %d", width, height);
+    // ROS_INFO("Width is: %d, Height is: %d", width, height);
 
-    ros::NodeHandle nh("~/DynamicWindow");
-    ros::NodeHandle oh;
+
     odometry_sub = oh.subscribe<nav_msgs::Odometry>("odom", 1, boost::bind(&DynamicWindow::odomCallback, this, _1));
     guiPathPub = nh.advertise<nav_msgs::Path>("plan", 1);
-    waypointPub = nh.advertise<nav_msgs::Path>("waypoints", 1);
 
     initialized = true;
 
@@ -262,7 +273,7 @@ public:
     width = costmap->getSizeInCellsX();
     height = costmap->getSizeInCellsY();
     mapSize = width * height;
-    ROS_INFO("Width is: %d, Height is: %d", width, height);
+    // ROS_INFO("Width is: %d, Height is: %d", width, height);
 
 
     double robotV = getLinearVelocity();
@@ -276,11 +287,11 @@ public:
 
     double minW = clamp(robotW + DT*MIN_ANGULAR_ACCELERATION, MIN_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     double maxW = clamp(robotW + DT*MAX_ANGULAR_ACCELERATION, MIN_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-    ROS_INFO("RobotW: %4lf, DT: %4lf, MIN_ANGULAR_ACCELERATION: %4lf",robotW,DT, MIN_ANGULAR_ACCELERATION);
+    // ROS_INFO("RobotW: %4lf, DT: %4lf, MIN_ANGULAR_ACCELERATION: %4lf",robotW,DT, MIN_ANGULAR_ACCELERATION);
     double velocityPrecision = 0.01;
     double angularPrecision = 5/180.0 * PI;
 
-    ROS_INFO("DW Velocity range (%4f,%4f), rotational range (%4f, %4f)", minV,maxV, minW,maxW);
+    // ROS_INFO("DW Velocity range (%4f,%4f), rotational range (%4f, %4f)", minV,maxV, minW,maxW);
     double sumHeading = 0.0, sumClearance = 0.0, sumVelocity = 0.0;
     for(double v = minV; v <= maxV; v += velocityPrecision){
         for(double w = minW; w <= maxW; w += angularPrecision){
@@ -318,8 +329,8 @@ public:
        //       WEIGHT_HEADING * scoringhelper[i].heading +
        //       WEIGHT_CLEARANCE * scoringhelper[i].clearance +
        //       WEIGHT_VELOCITY * scoringhelper[i].v;
-      printf("Score for %d with (v: %lf, w: %lf, heading: %lf, clearance: %lf ) is %lf \n", i, scoringhelper[i].v, scoringhelper[i].w,
-      scoringhelper[i].heading, scoringhelper[i].clearance, scoringhelper[i].score);
+      // printf("Score for %d with (v: %lf, w: %lf, heading: %lf, clearance: %lf ) is %lf \n", i, scoringhelper[i].v, scoringhelper[i].w,
+      // scoringhelper[i].heading, scoringhelper[i].clearance, scoringhelper[i].score);
          if(scoringhelper[i].score >= scoringhelper[bestScoreIndex].score)
            bestScoreIndex = i;
     }

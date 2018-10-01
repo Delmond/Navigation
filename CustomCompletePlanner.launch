@@ -17,24 +17,22 @@
 	<node pkg="gmapping" type="slam_gmapping"
 		respawn="false" name="slam_gmapping" output="screen">
 		<remap from="scan" to="/base_scan" />
-		<param name="map_update_interval" value="2.0"/>
+		<param name="map_update_interval" value="5"/>
 		<param name="maxUrange" value="6.0"/>
 		<param name="iterations" value="5"/>
-		<param name="linearUpdate" value="0.25"/>
-		<param name="angularUpdate" value="0.262"/>
+		<param name="linearUpdate" value="0.1"/>
+		<param name="angularUpdate" value="0.1"/>
 		<param name="temporalUpdate" value="-1.0" />
 		<param name="particles" value="300"/>
 		<param name="xmin" value="-50.0"/>
 		<param name="ymin" value="-50.0"/>
 		<param name="xmax" value="50.0"/>
 		<param name="ymax" value="50.0"/>
-		<param name="base_frame" value="base_link"/>
 		<param name="minimumScore" value="200.0"/>
 		<param name="srr" value="0.01"/>
 		<param name="str" value="0.01"/>
 		<param name="srt" value="0.02"/>
 		<param name="stt" value="0.02"/>
-		<param name="transform_publish_period" value="0.1" />
 	</node>
 
 	<!-- Global and Local path planner -->
