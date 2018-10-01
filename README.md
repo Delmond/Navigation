@@ -17,9 +17,9 @@ The **BaseLocalPlanner** interface:
 - isGoalReached
 - setPlan
 
-Both base classes come from the nav_core ROS package and both derived classes need to implement the respective interfaces.
+Both base classes come from the * nav_core * ROS package and both derived classes need to implement the respective interfaces.
 
-Both classes are exported as plugins and included in the move_base navigation stack.
+Both classes are exported as plugins and included in the * move_base * navigation stack.
 
 ## Installing
 To install this project, you have to have ROS installed alongside the following ROS packages:
@@ -29,16 +29,17 @@ To install this project, you have to have ROS installed alongside the following 
 - rviz
 - move_base
 - nav_core
-You also have to have a Workspace set up, then you can simple clone this project into the /src folder of your Workspace.
+
+You also have to have a Workspace set up, then you can simple clone this project into the ` /src ` folder of your Workspace.
 
 ## Building
-Simply run catkin_make in your workspace. Then source the setup file in the /devel folder.
+Simply run catkin_make in your workspace, then source the setup file in the ` /devel ` folder.
 
 ## Running
-You can run this project by typing ` roslaunch pathplanner CustomCompletePlanner.launch `
+You can run this project by typing ` roslaunch pathplanner CustomCompletePlanner.launch `.
 
 ## About
-Developed by Muhamed Delalić
+Developed by Muhamed Delalić.
 
 ## License
 This project is licensed under the terms of the MIT license.
