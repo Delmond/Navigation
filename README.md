@@ -1,4 +1,6 @@
 # ROS navigation stack using move_base package
+This repository contains a simple implementation of a Global and Local path planner.
+
 
 ## Global path planner
 The file **Astar_global_planner.cpp** contains the derived class **Astar** which implementents the base class **BaseGlobalPlanner**. 
@@ -39,7 +41,7 @@ Simply run catkin_make in your workspace, then source the setup file in the ` /d
 You can run this project by typing ` roslaunch pathplanner CustomCompletePlanner.launch `.
 
 ## About
-Developed by Muhamed Delalić.
+Developed by Muhamed Delalić using ROS Melodic Morenia on Ubuntu 18.04.
 
 ## License
 This project is licensed under the terms of the MIT license.
